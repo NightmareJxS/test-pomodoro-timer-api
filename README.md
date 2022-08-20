@@ -5,6 +5,7 @@
 
 ### Note:
 * Just a test, haven't create DB 
+* Haven't implement JWT
 
 
 #### © 2022 NightmareJxS
