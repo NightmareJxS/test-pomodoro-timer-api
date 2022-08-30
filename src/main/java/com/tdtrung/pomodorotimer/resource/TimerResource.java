@@ -4,6 +4,8 @@
  */
 package com.tdtrung.pomodorotimer.resource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.tdtrung.pomodorotimer.dao.TaskDAO;
 import com.tdtrung.pomodorotimer.dao.UserDAO;
 import com.tdtrung.pomodorotimer.model.Task;
@@ -94,7 +96,18 @@ public class TimerResource {
 //                        String[] multipleEntity = new String[2];
 //                        multipleEntity[0]= userInfo.toString();
 //                        multipleEntity[1]= userTask.toString();
-                        String multipleEntity = "[" + userInfo + "," + userTask + "]"; // is this valid JSON object?
+//                        String multipleEntity = "[" + userInfo + "," + userTask + "]"; // is this valid JSON object?
+                        
+
+                        //ref : https://stackoverflow.com/questions/15786129/converting-java-objects-to-json-with-jackson
+                        String multipleEntity = "";
+                        try {
+                                ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+                                String json1 = ow.writeValueAsString(userInfo);
+                                String json2 = ow.writeValueAsString(userTask);
+                                multipleEntity = "{" + "userInfo: " + json1 + ",\ntasklist:" + json2 + "}";
+                        } catch (Exception e) {
+                        }
 
                         Response msg = Response.ok().entity(multipleEntity).build();
 
@@ -120,7 +133,7 @@ public class TimerResource {
                                                         status = SUCCESS;
                                                 }
                                         }
-                                        
+
                                 } else {
                                         status = DUBLICATE;
                                 }
