@@ -6,6 +6,7 @@ package com.tdtrung.pomodorotimer.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.tdtrung.pomodorotimer.config.CORSFilter;
 import com.tdtrung.pomodorotimer.dao.TaskDAO;
 import com.tdtrung.pomodorotimer.dao.UserDAO;
 import com.tdtrung.pomodorotimer.model.Task;
@@ -32,7 +33,9 @@ import java.util.List;
  * @author Jason 2.0
  */
 public class TimerResource {
-
+        
+        CORSFilter corsFilter = new CORSFilter(); // maybe invoke override? Maybe?
+        
         @Path("/users")
         public static class Users {
 
