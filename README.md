@@ -4,7 +4,7 @@
 * Tech: Maven
 
 ### Note:
-* Just a test, haven't create DB 
+* SQL for Database is included
 * Haven't implement JWT
 
 

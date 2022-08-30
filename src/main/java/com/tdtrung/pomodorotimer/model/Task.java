@@ -22,7 +22,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Task implements Serializable {
-        private String id;
+        private int id;
         private String userId;
         private String name;
         private int duration;

@@ -8,15 +8,25 @@
                 <h1>Testing pomodoro timer API</h1>
                 <h2>Users</h2>
                 <ul>
-                        <li>../api/users : get all users</li>
-                        <li>../api/users/one : get one user</li>
-                        <li>../api/users/{id} : get user with that id</li>
+                        <li>Note*: public profile = no credentials data</li>
+                        <li>../api/users : get all users public profiles (for leaderboard)</li>
+                        <li>../api/users/{id} : get user with that id (public profile)</li>
                         <li>
-                                ../api/users/ : pass in new user JSON through POST method to create new user
+                                ../api/users/login : pass in a user JSON through POST method (username and password is a must) to login and return the user credentials data and task list (2 JSON object, final JSON might be wrong)
                                 <p>Example: <strong>{"id":"SE160947","email":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
                         </li>
+                        <li>
+                                ../api/users/create : pass in new user JSON through POST method to create new user (there's a dublicate check and userid length must >= 8)
+                                <p>Example: <strong>{"id":"SE160947","email":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
+                                Note* : return status  : 404 = ERROR ; 201 = SUCCESS ; 999 = DUBLICATE
+                        </li>
+                        <li>
+                                ../api/users/{userId}/addTask : pass in new task JSON through POST method to add new task for that userId
+                                <p>Example: <strong>{"id":0,"userId":"","name":"TestAddTask","duration":1209600,"startTime":1660755600000,"completeTime":1661965200000,"status":1}</strong></p>
+                                Note* : return status  : 404 = ERROR ; 201 = SUCCESS ;
+                        </li>
                 </ul>
-                <h2>Tasks</h2>
+                <h2><strike>Tasks</strike> (Temporary Delete/Remove/Commented) </h2>
                 <ul>
                         <li>../api/tasks : get all users</li>
                         <li>../api/tasks/one : get one user</li>
