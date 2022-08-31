@@ -34,8 +34,6 @@ import java.util.List;
  */
 public class TimerResource {
         
-        CORSFilter corsFilter = new CORSFilter(); // maybe invoke override? Maybe?
-        
         @Path("/users")
         public static class Users {
 
@@ -108,7 +106,7 @@ public class TimerResource {
                                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
                                 String json1 = ow.writeValueAsString(userInfo);
                                 String json2 = ow.writeValueAsString(userTask);
-                                multipleEntity = "{" + "userInfo: " + json1 + ",\ntasklist:" + json2 + "}";
+                                multipleEntity = "{" + "\"userInfo\": " + json1 + ",\n\"tasklist\":" + json2 + "}";
                         } catch (Exception e) {
                         }
 

@@ -29,7 +29,7 @@ public class CORSFilter implements ContainerResponseFilter {
 }
 
 
-
+// temporary remove as it's useless but will keep it here for later study
 
 // this ref: https://stackoverflow.com/questions/23450494/how-to-enable-cross-domain-requests-on-jax-rs-web-services
         // in servlet: https://stackoverflow.com/questions/54239666/enabling-cors-in-java-web-service 
