@@ -7,6 +7,7 @@ package com.tdtrung.pomodorotimer.config;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -24,6 +25,7 @@ import javax.servlet.annotation.WebFilter;
  *
  * @author ASUS
  */
+@Provider
 @WebFilter(filterName = "CORSFilterV2", urlPatterns = {"/*"}, dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.INCLUDE})
 public class CORSFilterV2 implements Filter, ContainerResponseFilter {
 
