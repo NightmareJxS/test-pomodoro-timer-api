@@ -96,7 +96,7 @@ public class CORSFilterV2 implements Filter {
 
     /**
      *
-     * @param request The servlet request we are processing
+     * @param servletRequest The servlet request we are processing
      * @param servletResponse The servlet response we are creating
      * @param chain The filter chain we are processing
      *
