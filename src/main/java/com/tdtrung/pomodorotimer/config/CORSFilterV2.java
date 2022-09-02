@@ -4,6 +4,7 @@
  */
 package com.tdtrung.pomodorotimer.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
@@ -96,20 +97,35 @@ public class CORSFilterV2 implements Filter {
     /**
      *
      * @param request The servlet request we are processing
-     * @param response The servlet response we are creating
+     * @param servletResponse The servlet response we are creating
      * @param chain The filter chain we are processing
      *
      * @exception IOException if an input/output error occurs
      * @exception ServletException if a servlet error occurs
      */
-    public void doFilter(ServletRequest request, ServletResponse response,
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
             FilterChain chain)
             throws IOException, ServletException {
-        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Origin", "*");
-        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
-        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Credentials", "true");
-        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-        ((HttpServletResponse) response).addHeader("Access-Control-Max-Age", "1209600");
+
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        System.out.println("CORSFilter HTTP Request: " + request.getMethod());
+
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Origin", "*");
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Credentials", "true");
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Max-Age", "1209600");
+
+        HttpServletResponse resp = (HttpServletResponse) servletResponse;
+
+        // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS handshake
+        if (request.getMethod().equals("OPTIONS")) {
+            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
+            return;
+        }
+
+        // pass the request along the filter chain
+        chain.doFilter((ServletRequest) request, servletResponse);
 
     }
 
