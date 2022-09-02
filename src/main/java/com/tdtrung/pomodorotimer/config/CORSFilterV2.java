@@ -4,6 +4,7 @@
  */
 package com.tdtrung.pomodorotimer.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -25,9 +26,9 @@ import javax.servlet.annotation.WebFilter;
  *
  * @author ASUS
  */
-@Provider
+//@Provider
 @WebFilter(filterName = "CORSFilterV2", urlPatterns = {"/*"}, dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.INCLUDE})
-public class CORSFilterV2 implements Filter, ContainerResponseFilter {
+public class CORSFilterV2 implements Filter {
 
     private static final boolean debug = true;
 
@@ -104,37 +105,12 @@ public class CORSFilterV2 implements Filter, ContainerResponseFilter {
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
+        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Origin", "*");
+        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
+        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Credentials", "true");
+        ((HttpServletResponse) response).addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+        ((HttpServletResponse) response).addHeader("Access-Control-Max-Age", "1209600");
 
-        if (debug) {
-            log("CORSFilterV2:doFilter()");
-        }
-
-        doBeforeProcessing(request, response);
-
-        Throwable problem = null;
-        try {
-            chain.doFilter(request, response);
-        } catch (Throwable t) {
-            // If an exception is thrown somewhere down the filter chain,
-            // we still want to execute our after processing, and then
-            // rethrow the problem after that.
-            problem = t;
-            t.printStackTrace();
-        }
-
-        doAfterProcessing(request, response);
-
-        // If there was a problem, we want to rethrow it if it is
-        // a known type, otherwise log it.
-        if (problem != null) {
-            if (problem instanceof ServletException) {
-                throw (ServletException) problem;
-            }
-            if (problem instanceof IOException) {
-                throw (IOException) problem;
-            }
-            sendProcessingError(problem, response);
-        }
     }
 
     /**
@@ -233,14 +209,13 @@ public class CORSFilterV2 implements Filter, ContainerResponseFilter {
         filterConfig.getServletContext().log(msg);
     }
 
-    @Override
-    public void filter(final ContainerRequestContext requestContext,
-            final ContainerResponseContext cres) throws IOException {
-        cres.getHeaders().add("Access-Control-Allow-Origin", "*"); // can change to specific site as allow all site is not secure (vd: http://localhost:3000 )
-        cres.getHeaders().add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
-        cres.getHeaders().add("Access-Control-Allow-Credentials", "true");
-        cres.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
-        cres.getHeaders().add("Access-Control-Max-Age", "1209600");
-    }
-
+//    @Override
+//    public void filter(final ContainerRequestContext requestContext,
+//            final ContainerResponseContext cres) throws IOException {
+//        cres.getHeaders().add("Access-Control-Allow-Origin", "*"); // can change to specific site as allow all site is not secure (vd: http://localhost:3000 )
+//        cres.getHeaders().add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
+//        cres.getHeaders().add("Access-Control-Allow-Credentials", "true");
+//        cres.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD");
+//        cres.getHeaders().add("Access-Control-Max-Age", "1209600");
+//    }
 }
