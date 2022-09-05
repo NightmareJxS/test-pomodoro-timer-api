@@ -22,7 +22,7 @@ import lombok.ToString;
 @ToString
 public class User implements Serializable {
         private String id;
-        private String email;
+        private String name;
         private String password;
         private int timeFocusToday ;
         private int timeFocusThisWeek;
