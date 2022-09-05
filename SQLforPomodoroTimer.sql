@@ -6,7 +6,7 @@ go
 
 CREATE TABLE [User] (
 	Id nvarchar(50) primary key,
-	Email nvarchar(50),
+	[Name] nvarchar(50),
 	[Password] varchar(50),
 	TimeFocusToday int,
 	TimeFocusThisWeek int
@@ -16,13 +16,15 @@ go
 
 CREATE TABLE Task(
 	Id int identity primary key,
-	UserId nvarchar(50) REFERENCES [User](Id),
+	UserId nvarchar(50) REFERENCES [User](Id) ON DELETE CASCADE,
 	[Name] nvarchar(50),
 	Duration int,
 	StartTime Date,
 	CompleteTime Date,
 	[Status] int
 ) 
+
+
 
 go
 
@@ -56,8 +58,13 @@ go
 SELECT * FROM [User] 
 SELECT * FROM Task
 SELECT * FROM [User] WHERE Id = 'SE160947'
-SELECT Id, Email, [Password], TimeFocusToday, TimeFocusThisWeek FROM [User] WHERE Id = 'SE160947' AND [Password] = '123456'
+SELECT Id, [Name], [Password], TimeFocusToday, TimeFocusThisWeek FROM [User] WHERE Id = 'SE160947' AND [Password] = '123456'
 SELECT Id, UserId, [Name], Duration, StartTime, CompleteTime, [Status] FROM Task WHERE UserId = 'SE160947' 
-INSERT INTO [User](Id, Email, [Password], TimeFocusToday, TimeFocusThisWeek) VALUES (?, ?, ?, ?, ?) 
-SELECT Email FROM [User] WHERE Id = ? 
+INSERT INTO [User](Id, [Name], [Password], TimeFocusToday, TimeFocusThisWeek) VALUES (?, ?, ?, ?, ?) 
+SELECT [Name] FROM [User] WHERE Id = ? 
 INSERT INTO Task(Id, UserId, [Name], Duration, StartTime, CompleteTime, [Status]) VALUES (?, ?, ?, ?, ?, ?, ?) 
+UPDATE [User] SET [Name]='testing3@test.com', [Password]='555555', TimeFocusToday=0, TimeFocusThisWeek=0 WHERE Id='PTU00007' 
+SELECT [Name] FROM Task WHERE Id = 17 AND UserId = 'SE160947' 
+UPDATE Task SET [Name]='OJT Signup2', Duration=7200, StartTime='2022-08-13', CompleteTime='2022-09-30', [Status]=1 WHERE Id=17  
+DELETE [User] WHERE Id = 'PTU67545' 
+DELETE Task WHERE Id = 55 
