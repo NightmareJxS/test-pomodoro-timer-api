@@ -6,12 +6,13 @@ package com.tdtrung.pomodorotimer.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.tdtrung.pomodorotimer.config.CORSFilter;
 import com.tdtrung.pomodorotimer.dao.TaskDAO;
 import com.tdtrung.pomodorotimer.dao.UserDAO;
+import com.tdtrung.pomodorotimer.model.ErrorMessage;
 import com.tdtrung.pomodorotimer.model.Task;
 import com.tdtrung.pomodorotimer.model.User;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -23,7 +24,6 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ import java.util.List;
  * @author Jason 2.0
  */
 public class TimerResource {
-        
+
         @Path("/users")
         public static class Users {
 
@@ -53,12 +53,6 @@ public class TimerResource {
                         return listUser;
                 }
 
-//                @GET
-//                @Path("one")
-//                @Produces(MediaType.APPLICATION_JSON)
-//                public User getUser() {
-//                        return new User("PTU12345", "testingGetOneUser@test.com", "000000", 48830, 876734); // (1st method)
-//                }
                 @GET
                 @Path("{id}")
                 @Produces(MediaType.APPLICATION_JSON)
@@ -82,6 +76,11 @@ public class TimerResource {
                 public Response login(User user) {
                         User userInfo = null;
                         List<Task> userTask = new ArrayList<>();
+                        ErrorMessage error = new ErrorMessage();
+                        int ERROR = 0;
+                        int SUCCESS = 1;
+                        int INVALID_CREDENTIALS = 2;
+                        int status = ERROR;
 
                         try {
                                 UserDAO dao = new UserDAO();
@@ -89,6 +88,9 @@ public class TimerResource {
                                 userInfo = dao.checkLogin(user.getId(), user.getPassword());
                                 if (userInfo != null) {
                                         userTask = tdao.getTaskPerUser(user.getId());
+                                        status = SUCCESS;
+                                } else {
+                                        status = INVALID_CREDENTIALS;
                                 }
                         } catch (Exception e) {
                                 e.printStackTrace();
@@ -98,8 +100,6 @@ public class TimerResource {
 //                        multipleEntity[0]= userInfo.toString();
 //                        multipleEntity[1]= userTask.toString();
 //                        String multipleEntity = "[" + userInfo + "," + userTask + "]"; // is this valid JSON object?
-                        
-
                         //ref : https://stackoverflow.com/questions/15786129/converting-java-objects-to-json-with-jackson
                         String multipleEntity = "";
                         try {
@@ -110,7 +110,21 @@ public class TimerResource {
                         } catch (Exception e) {
                         }
 
-                        Response msg = Response.ok().entity(multipleEntity).build();
+                        Response msg = null;
+
+                        switch (status) {
+                                case 0:
+                                        error.setMessage("Login unsuccessfully, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed login 
+                                        break;
+                                case 1:
+                                        msg = Response.ok().entity(multipleEntity).build();
+                                        break;
+                                case 2:
+                                        error.setMessage("Invalid userID or Password!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for Invalid userID or Password!
+                                        break;
+                        }
 
                         return msg;
                 }
@@ -123,7 +137,9 @@ public class TimerResource {
                         int DUBLICATE = 2;
                         int ERROR = 0;
                         int SUCCESS = 1;
+                        int INVALID_USER_ID_LENGTH = 3;
                         int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
                         try {
                                 UserDAO dao = new UserDAO();
                                 boolean checkDuplicate = dao.checkDublicate(user.getId());
@@ -133,6 +149,8 @@ public class TimerResource {
                                                 if (checkInsert) {
                                                         status = SUCCESS;
                                                 }
+                                        } else {
+                                                status = INVALID_USER_ID_LENGTH;
                                         }
 
                                 } else {
@@ -151,13 +169,19 @@ public class TimerResource {
                         Response msg = null;
                         switch (status) {
                                 case 0:
-                                        msg = Response.status(404).build(); // created custom return code for failed creation (doesn't have to be 404)
+                                        error.setMessage("Fail to create account, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed creation
                                         break;
                                 case 1:
                                         msg = Response.created(url).build();
                                         break;
                                 case 2:
-                                        msg = Response.status(999).entity(user).build(); // created custom return code for dublicated userid
+                                        error.setMessage("Duplicated User ID!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for dublicated userid
+                                        break;
+                                case 3:
+                                        error.setMessage("UserID must be longer or equal to 8 characters!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for userID not long enough
                                         break;
                         }
 
@@ -171,13 +195,22 @@ public class TimerResource {
                 public Response addNewTask(@PathParam("userId") String userId, Task task) throws URISyntaxException {
                         int ERROR = 0;
                         int SUCCESS = 1;
+                        int USER_NOT_FOUND = 2;
                         int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
                         try {
-                                TaskDAO dao = new TaskDAO();
-                                boolean checkCreateTask = dao.addNewTask(userId, task); // can only add task after login for valid userId
-                                if (checkCreateTask) {
-                                        status = SUCCESS;
+                                UserDAO dao = new UserDAO();
+                                boolean checkAvailableUser = dao.checkDublicate(userId);
+                                if (checkAvailableUser) {
+                                        TaskDAO tdao = new TaskDAO();
+                                        boolean checkCreateTask = tdao.addNewTask(userId, task); // can only add task after login for valid userId
+                                        if (checkCreateTask) {
+                                                status = SUCCESS;
+                                        }
+                                } else {
+                                        status = USER_NOT_FOUND;
                                 }
+
                         } catch (Exception e) {
                                 e.printStackTrace();
                         }
@@ -190,10 +223,211 @@ public class TimerResource {
                         Response msg = null;
                         switch (status) {
                                 case 0:
-                                        msg = Response.status(404).build(); // created custom return code for failed creation (doesn't have to be 404)
+                                        error.setMessage("Fail to add new task, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed creation 
                                         break;
                                 case 1:
                                         msg = Response.created(url).entity(task).build();
+                                        break;
+                                case 2:
+                                        error.setMessage("User Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for USER_NOT_FOUND 
+                                        break;
+                        }
+
+                        return msg;
+                }
+
+                @POST
+                @Path("update") // Can disable this as : No need to use Path as direct submit POST method will automactic add new User (POST != GET)
+                @Consumes(MediaType.APPLICATION_JSON)
+                @Produces(MediaType.APPLICATION_JSON)
+                public Response updateUser(User user) throws URISyntaxException {
+                        int ERROR = 0;
+                        int SUCCESS = 1;
+                        int USER_NOT_FOUND = 2;
+                        int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
+                        try {
+                                UserDAO dao = new UserDAO();
+                                boolean checkAvailableUser = dao.checkDublicate(user.getId());
+                                if (checkAvailableUser) {
+                                        boolean checkUpdateUser = dao.updateUser(user); // can only add task after login for valid userId
+                                        if (checkUpdateUser) {
+                                                status = SUCCESS;
+                                        }
+                                } else {
+                                        status = USER_NOT_FOUND;
+                                }
+
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+
+                        Response msg = null;
+                        switch (status) {
+                                case 0:
+                                        error.setMessage("Fail to update user profile, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed update 
+                                        break;
+                                case 1:
+                                        msg = Response.ok().build();
+                                        break;
+                                case 2:
+                                        error.setMessage("User Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for USER_NOT_FOUND 
+                                        break;
+                        }
+
+                        return msg;
+                }
+
+                @POST
+                @Path("{userId}/updateTask") // Can disable this as : No need to use Path as direct submit POST method will automactic add new User (POST != GET)
+                @Consumes(MediaType.APPLICATION_JSON)
+                @Produces(MediaType.APPLICATION_JSON)
+                public Response updateTask(@PathParam("userId") String userId, Task task) throws URISyntaxException {
+                        int ERROR = 0;
+                        int SUCCESS = 1;
+                        int USER_NOT_FOUND = 2;
+                        int TASK_NOT_FOUND = 3;
+                        int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
+                        try {
+                                UserDAO dao = new UserDAO();
+                                boolean checkAvailableUser = dao.checkDublicate(userId);
+                                if (checkAvailableUser) {
+                                        TaskDAO tdao = new TaskDAO();
+                                        boolean checkCorrectTask = tdao.checkAvailable(task.getId(), userId);
+                                        if (checkCorrectTask) {
+                                                boolean checkUpdateTask = tdao.updateTask(task); // can only add task after login for valid userId
+                                                if (checkUpdateTask) {
+                                                        status = SUCCESS;
+                                                }
+                                        } else {
+                                                status = TASK_NOT_FOUND;
+                                        }
+                                } else {
+                                        status = USER_NOT_FOUND;
+                                }
+
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+
+                        Response msg = null;
+                        switch (status) {
+                                case 0:
+                                        error.setMessage("Fail to update task, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed update User's task
+                                        break;
+                                case 1:
+                                        msg = Response.ok().build();
+                                        break;
+                                case 2:
+                                        error.setMessage("User Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for USER_NOT_FOUND 
+                                        break;
+                                case 3:
+                                        error.setMessage("Task Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for TASK_NOT_FOUND 
+                                        break;
+                        }
+
+                        return msg;
+                }
+
+                @DELETE
+                @Path("/{userId}/delete") // add an extra "/" at the start cause some how DELETE method can't read it like GET or POST (multiple properties in url?)
+                @Produces(MediaType.APPLICATION_JSON)
+                public Response deleteUser(@PathParam("userId") String userId) throws URISyntaxException {
+                        int ERROR = 0;
+                        int SUCCESS = 1;
+                        int USER_NOT_FOUND = 2;
+                        int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
+                        try {
+                                UserDAO dao = new UserDAO();
+                                boolean checkAvailableUser = dao.checkDublicate(userId);
+                                if (checkAvailableUser) {
+                                        boolean checkDeleteUser = dao.deleteUser(userId); // can only add task after login for valid userId
+                                        if (checkDeleteUser) {
+                                                status = SUCCESS;
+                                        }
+                                } else {
+                                        status = USER_NOT_FOUND;
+                                }
+
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+
+                        Response msg = null;
+                        switch (status) {
+                                case 0:
+                                        error.setMessage("Fail to detele account, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed delete User
+                                        break;
+                                case 1:
+                                        msg = Response.ok().build();
+                                        break;
+                                case 2:
+                                        error.setMessage("User Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for USER_NOT_FOUND 
+                                        break;
+                        }
+
+                        return msg;
+                }
+
+                @DELETE
+                @Path("/{userId}/{taskId}/deleteTask") // add an extra "/" at the start cause some how DELETE method can't read it like GET or POST (multiple properties in url?)
+                @Produces(MediaType.APPLICATION_JSON)
+                public Response deleteTask(@PathParam("userId") String userId, @PathParam("taskId") int taskId) throws URISyntaxException {
+                        int ERROR = 0;
+                        int SUCCESS = 1;
+                        int USER_NOT_FOUND = 2;
+                        int TASK_NOT_FOUND = 3;
+                        int status = ERROR;
+                        ErrorMessage error = new ErrorMessage();
+                        try {
+                                UserDAO dao = new UserDAO();
+                                boolean checkAvailableUser = dao.checkDublicate(userId);
+                                if (checkAvailableUser) {
+                                        TaskDAO tdao = new TaskDAO();
+                                        boolean checkCorrectTask = tdao.checkAvailable(taskId, userId);
+                                        if (checkCorrectTask) {
+                                                boolean checkUpdateTask = tdao.deleteTask(taskId); // can only add task after login for valid userId
+                                                if (checkUpdateTask) {
+                                                        status = SUCCESS;
+                                                }
+                                        } else {
+                                                status = TASK_NOT_FOUND;
+                                        }
+                                } else {
+                                        status = USER_NOT_FOUND;
+                                }
+
+                        } catch (Exception e) {
+                                e.printStackTrace();
+                        }
+
+                        Response msg = null;
+                        switch (status) {
+                                case 0:
+                                        error.setMessage("Fail to delete task, please contact us for help!");
+                                        msg = Response.status(601).entity(error).build(); // created custom return code for failed update User's task
+                                        break;
+                                case 1:
+                                        msg = Response.ok().build();
+                                        break;
+                                case 2:
+                                        error.setMessage("User Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for USER_NOT_FOUND 
+                                        break;
+                                case 3:
+                                        error.setMessage("Task Not Found!");
+                                        msg = Response.status(602).entity(error).build(); // created custom return code for TASK_NOT_FOUND 
                                         break;
                         }
 
@@ -202,65 +436,4 @@ public class TimerResource {
 
         }
 
-//        @Path("/tasks")
-//        public static class Tasks {
-//
-//                @Context
-//                UriInfo ui; // To store url from Tomcat (when create new user)
-//
-//                @GET
-//                @Produces(MediaType.APPLICATION_JSON)
-//                public List<Task> getAll() {
-//                        // tmp list (not connected to DB)
-//                        List<Task> list = new ArrayList();
-//                        list.add(new Task("17", "SE160947", "OJT Signup", 7200, Date.valueOf("2022-08-13"), Date.valueOf("2022-08-14"), 0));
-//                        list.add(new Task("18", "SE160947", "Something1", 600, Date.valueOf("2022-08-15"), Date.valueOf("2022-08-15"), 0));
-//                        list.add(new Task("19", "SE160947", "Something2", 120, Date.valueOf("2022-08-15"), Date.valueOf("2022-08-15"), 0));
-//                        list.add(new Task("12", "SE160947", "Something3", 172800, Date.valueOf("2022-08-16"), Date.valueOf("2022-08-18"), 0));
-//                        list.add(new Task("1", "SE160947", "Something4", 1209600, Date.valueOf("2022-08-18"), Date.valueOf("2022-09-01"), 1));
-//                        list.add(new Task("5", "PTU02847", "Something5", 7200, Date.valueOf("2022-08-13"), Date.valueOf("2022-08-14"), 1));
-//                        list.add(new Task("55", "PTU43252", "Something6", 120, Date.valueOf("2022-08-15"), Date.valueOf("2022-08-15"), 3));
-//                        list.add(new Task("48", "PTU65438", "Something7", 120, Date.valueOf("2022-08-15"), Date.valueOf("2022-08-15"), 2));
-////                        Date date = Date.valueOf("2022-08-15");
-////                        System.out.println(date);
-//                        // Uses https://www.epochconverter.com/ if can't understand number
-//                        return list;
-//                }
-//                
-//                @GET
-//                @Path("one")
-//                @Produces(MediaType.APPLICATION_JSON)
-//                public Task getTask() {
-//                        return new Task("17", "SE160947", "OJT Signup", 7200, Date.valueOf("2022-08-13"), Date.valueOf("2022-08-14"), 0); // (1st method)
-//                }
-//
-//                @GET
-//                @Path("{userId}/{taskId}")
-//                @Produces(MediaType.APPLICATION_JSON)
-//                public Response getBy(@PathParam("userId") String userId, @PathParam("taskId") String taskId) {
-//                        // Can replace with search function in dao
-//                        Task task = new Task(taskId, userId, "OJT Signup", 7200, Date.valueOf("2022-08-13"), Date.valueOf("2022-08-14"), 0);
-//
-//                        Response msg = Response.ok().entity(task).build();
-//                        return msg; // Create response msg (2nd method)
-//                }
-//
-//                @POST
-////        @Path("create") // No need to use Path as direct submit POST method will automactic add new User (POST != GET)
-//                @Consumes(MediaType.APPLICATION_JSON)
-//                public Response add(Task task) throws URISyntaxException {
-//                        // Can replace with create method in dao
-//                        // tmp sout for understading
-//                        System.out.println("Created a new user: " + task);
-//
-//                        // Return new api url to new task
-//                        // Use Postman to check
-//                        // Ref: https://youtu.be/nKXAKEQ2Y58?t=5218 
-//                        URI url = new URI(ui.getBaseUri() + "tasks/" + task.getUserId() + "/" + task.getId());
-//
-//                        Response msg = Response.created(url).build();
-//
-//                        return msg;
-//                }
-//        }
 }

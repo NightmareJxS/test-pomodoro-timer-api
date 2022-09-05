@@ -22,6 +22,9 @@ public class TaskDAO {
 
         private static final String GET_TASK_AFTER_LOGIN = "SELECT Id, UserId, [Name], Duration, StartTime, CompleteTime, [Status] FROM Task WHERE UserId = ? ";
         private static final String CREATE_NEW_TASK = "INSERT INTO Task(UserId, [Name], Duration, StartTime, CompleteTime, [Status]) VALUES (?, ?, ?, ?, ?, ?) ";
+        private static final String CHECK_AVAILABLE = "SELECT [Name] FROM Task WHERE Id = ? AND UserId = ? ";
+        private static final String UPDATE_TASK = "UPDATE Task SET [Name]=?, Duration=?, StartTime=?, CompleteTime=?, [Status]=? WHERE Id=?   ";
+        private static final String DELETE_TASK = "DELETE Task WHERE Id = ? ";
 
         public List<Task> getTaskPerUser(String userId) throws SQLException {
                 List<Task> tasklist = new ArrayList<>();
@@ -36,7 +39,7 @@ public class TaskDAO {
                                 ptm.setString(1, userId);
                                 rs = ptm.executeQuery();
                                 while (rs.next()) {
-                                        int taskId = 0; // the tracking id is for the server side, no need to show for the client
+                                        int taskId = rs.getInt("Id");
                                         String taskName = rs.getString("Name");
                                         int duration = rs.getInt("Duration");
                                         Date startTime = rs.getDate("StartTime");
@@ -78,6 +81,98 @@ public class TaskDAO {
                                 ptm.setDate(4, task.getStartTime());
                                 ptm.setDate(5, task.getCompleteTime());
                                 ptm.setInt(6, task.getStatus());
+                                check = ptm.executeUpdate() > 0 ? true : false;
+                        }
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                } finally {
+                        if (ptm != null) {
+                                ptm.close();
+                        }
+                        if (conn != null) {
+                                conn.close();
+                        }
+                }
+
+                return check;
+        }
+
+        public boolean checkAvailable(int taskId, String userId) throws SQLException {
+                boolean check = false;
+                Connection conn = null;
+                PreparedStatement ptm = null;
+                ResultSet rs = null;
+                try {
+                        conn = DBUtils.getConnection();
+                        if (conn != null) {
+                                ptm = conn.prepareStatement(CHECK_AVAILABLE);
+                                ptm.setInt(1, taskId);
+                                ptm.setString(2, userId);
+                                rs = ptm.executeQuery();
+                                if (rs.next()) {
+                                        check = true;
+                                }
+                        }
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                } finally {
+                        if (rs != null) {
+                                rs.close();
+                        }
+                        if (ptm != null) {
+                                ptm.close();
+                        }
+                        if (conn != null) {
+                                conn.close();
+                        }
+                }
+
+                return check;
+        }
+        
+        public boolean updateTask(Task task) throws SQLException {
+                boolean check = false;
+                Connection conn = null;
+                PreparedStatement ptm = null;
+                try {
+                        conn = DBUtils.getConnection();
+                        if (conn != null) {
+                                ptm = conn.prepareStatement(UPDATE_TASK);
+                                ptm.setString(1, task.getName());
+                                ptm.setInt(2, task.getDuration());
+                                ptm.setDate(3, task.getStartTime());
+                                ptm.setDate(4, task.getCompleteTime());
+                                ptm.setInt(5, task.getStatus());
+                                ptm.setInt(6, task.getId());
+                                check = ptm.executeUpdate() > 0 ? true : false;
+                        }
+
+                } catch (Exception e) {
+                        e.printStackTrace();
+                } finally {
+                        if (ptm != null) {
+                                ptm.close();
+                        }
+                        if (conn != null) {
+                                conn.close();
+                        }
+                }
+
+                return check;
+        }
+        
+        
+        public boolean deleteTask(int taskId) throws SQLException {
+                boolean check = false;
+                Connection conn = null;
+                PreparedStatement ptm = null;
+                try {
+                        conn = DBUtils.getConnection();
+                        if (conn != null) {
+                                ptm = conn.prepareStatement(DELETE_TASK);
+                                ptm.setInt(1, taskId);
                                 check = ptm.executeUpdate() > 0 ? true : false;
                         }
 
