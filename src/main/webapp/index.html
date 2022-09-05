@@ -3,38 +3,70 @@
         <head>
                 <title>Start Page</title>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+                <style>
+                        body{
+                                background-color: #404254;
+                                color: #FFFFFF;
+                        }
+                        h1{
+                                color: #50fa7b;
+                        }
+                        h2{
+                                color: #8be9fd;
+                        }
+                        li{
+                                color: #ff79c6;
+                        }
+                        p{
+                                color: #f1fa90;
+                        }
+                        .description{
+                                color: #b9bcd1;
+                        }
+                </style>
+
         </head>
         <body>
                 <h1>Testing pomodoro timer API</h1>
                 <h2>Users</h2>
                 <ul>
-                        <li>Note*: public profile = no credentials data</li>
-                        <li>../api/users : get all users public profiles (for leaderboard)</li>
-                        <li>../api/users/{id} : get user with that id (public profile)</li>
+                        <li>Note*: <span class="description">public profile = no credentials data</span></li>
+                        <li>../api/users : <span class="description">get all users public profiles (for leaderboard)</span></li>
+                        <li>../api/users/{id} : <span class="description">get user with that id (public profile)</span></li>
                         <li>
-                                ../api/users/login : pass in a user JSON through POST method (username and password is a must) to login and return the user credentials data and task list (2 JSON object, final JSON might be wrong)
-                                <p>Example: <strong>{"id":"SE160947","email":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
+                                ../api/users/login : <span class="description">pass in a user JSON through POST method (username and password is a must) to login and return the user credentials data and task list</span>
+                                <p>Example: <strong>{"id":"SE160947","name":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 201 = SUCCESS ; 602 = INVALID_CREDENTIALS</span>
                         </li>
                         <li>
-                                ../api/users/create : pass in new user JSON through POST method to create new user (there's a dublicate check and userid length must >= 8)
-                                <p>Example: <strong>{"id":"SE160947","email":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
-                                Note* : return status  : 404 = ERROR ; 201 = SUCCESS ; 999 = DUBLICATE
+                                ../api/users/create : <span class="description">pass in new user JSON through POST method to create new user (there's a dublicate check and userid length must >= 8)</span>
+                                <p>Example: <strong>{"id":"SE160947","name":"testing@test.com","password":"123456","timeFocusToday":13575,"timeFocusThisWeek":794850}</strong></p>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 201 = SUCCESS ; 602 = user_errors(DUPLICATE / INVALID_USER_ID_LENGTH)</span>
                         </li>
                         <li>
-                                ../api/users/{userId}/addTask : pass in new task JSON through POST method to add new task for that userId
-                                <p>Example: <strong>{"id":0,"userId":"","name":"TestAddTask","duration":1209600,"startTime":1660755600000,"completeTime":1661965200000,"status":1}</strong></p>
-                                Note* : return status  : 404 = ERROR ; 201 = SUCCESS ;
+                                ../api/users/update : <span class="description">pass in user JSON through POST method to update that userId</span>
+                                <p>Example: <strong>{"id":"PTU00007","name":"testingUpdate@test.com","password":"123456","timeFocusToday":0,"timeFocusThisWeek":0}</strong></p>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 200 = OK ; 602 = USER_NOT_FOUND</span>
+                        </li>
+                        <li>
+                                ../api/users/{userId}/updateTask : <span class="description">pass in task JSON through POST method to update task for that userId</span>
+                                <p>Example: <strong>{"id":17,"userId":"SE160947","name":"OJT SignUp2","duration":1209600,"startTime":1660755600000,"completeTime":1661965200000,"status":1}</strong></p>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 200 = OK ; 602 = user_errors(USER_NOT_FOUND / TASK_NOT_FOUND)</span>
+                        </li>
+                        <li>
+                                ../api/users/{userId}/addTask : <span class="description">delete that user (DELETE method)</span> <br>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 200 = OK ; 602 = USER_NOT_FOUND</span>
+                        </li>
+                        <li>
+                                ../api/users/{userId}/addTask : <span class="description">delete that user's task (DELETE method)</span> <br>
+                                Note* : <span class="description">return status  : 601 = ERROR ; 200 = OK ; 602 = user_errors(USER_NOT_FOUND / TASK_NOT_FOUND)</span>
                         </li>
                 </ul>
-                <h2><strike>Tasks</strike> (Temporary Delete/Remove/Commented) </h2>
+                <h2>Custom return error codes</h2>
                 <ul>
-                        <li>../api/tasks : get all users</li>
-                        <li>../api/tasks/one : get one user</li>
-                        <li>../api/tasks/{userId}/{taskId} : get task with that id</li>
-                        <li>
-                                ../api/tasks/ : pass in new task JSON through POST method to create new task
-                                <p>Example: <strong>{"id":"17","userId":"SE160947","name":"OJT Signup","duration":7200,"startTime":1660323600000,"completeTime":1660410000000,"status":0}</strong></p>
-                        </li>
+                        <li>601 : <span class="description">server query error</span></li>
+                        <li>602 : <span class="description">User/FrontEnd input error</span></li>
                 </ul>
         </body>
 </html>
